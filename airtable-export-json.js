@@ -1,15 +1,23 @@
+// This script runs in the Script block in Airtable.
+// You'll need to modify the code to work with your base.
+
 output.markdown("## Pre-export checks")
 
 let criticalChecksPassed
 
-let table = base.getTable("logzioUI")
-let view = table.getView("Prod - Export")
+// Replace your table name
+let table = base.getTable("TABLE_NAME")
+
+// Replace your view name
+let view = table.getView("VIEW_NAME")
 let query = await view.selectRecordsAsync()
 let resultsList = createResultsList()
 let allKeys = resultsList.map(record => record.key)
 
 let invalidRecords = resultsList.filter( record => record.validation !== null )
 let duplicatedKeys = allKeys.filter((item, index) => allKeys.indexOf(item) != index)
+
+// This is because I had two fields for the copy. You may not need this section.
 let hasDesignCopy = resultsList.filter( record => record.designCopy )
 
 invalidRecordsCheck()
@@ -21,10 +29,17 @@ function createResultsList () {
     return query.records.map(record => {
         return {
             id: record.id,
-            key: record.getCellValue('key'),
-            validation: record.getCellValue('validation'),
-            designCopy: record.getCellValue('designCopy'),
-            productionCopy: record.getCellValue('productionCopy')
+            // Replace with the name of the field that will contain your JSON key.
+            key: record.getCellValue('KEY_FIELD'),
+            
+            // Replace with the name of the field that has your validation formula.
+            validation: record.getCellValue('VALIDATION_FIELD'),
+            
+            // If you have a separate field for design copy, include that field here.
+            designCopy: record.getCellValue('DESIGN_COPY_FIELD'),
+            
+            // Replace with the field that contains your production copy.
+            productionCopy: record.getCellValue('PRODUCTION_COPY_FIELD')
         }
     })
 }
@@ -44,7 +59,9 @@ function invalidRecordsCheck () {
         output.markdown("### ❌ Validation check failed")
 
         output.markdown(`**There are invalid records. Do not export**.`)
-        output.markdown(`Troubleshoot using [Prod - Fix validation errors](https://airtable.com/tbl0o5Kt0adTtKm5R/viwEbp4urEXyoOjru?blocks=bipnOsvNtyTmXXTHJ).`)
+        
+        // Replace with the details for the view you want to link to.
+        output.markdown(`Troubleshoot using [VIEW_NAME](https://airtable.com/TABLE_ID/VIEW_NAME).`)
         output.table(invalidRecords.map(record => {
             return {
                 Key: record.key,
@@ -66,7 +83,9 @@ function duplicatedKeysCheck () {
         output.markdown("### ❌ Duped key check failed")
 
         output.markdown(`**There are duplicated keys. Do not export**.`)
-        output.markdown(`Troubleshoot using the [DeDupe block](https://airtable.com/tbl0o5Kt0adTtKm5R/viws1c8jx86Q1GiAJ?blocks=bipaVX7bKRjvfdzJL&bip=full).`)
+        
+        // Replace with your details.
+        output.markdown(`Troubleshoot using the [DeDupe block](https://airtable.com/TABLE_ID/VIEW_ID?blocks=bipaVX7bKRjvfdzJL&bip=full).`)
         output.table(duplicatedKeys.map(key => {
             return {
                 Key: key
